@@ -1,5 +1,3 @@
-__author__ = 'SergioMac'
-
 from pyrobot.brain import Brain
 import random
 
