@@ -1,7 +1,7 @@
 from pyrobot.brain import Brain
 import random
 
-kMax_steps = 1000
+kMax_steps = 500
 kMax_individuos = 30
 kMax_generaciones = 100
 individuo = 0
