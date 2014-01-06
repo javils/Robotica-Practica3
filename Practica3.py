@@ -1,14 +1,16 @@
+# -*- encoding: utf-8 -*-
 from pyrobot.brain import Brain
 import random
 
-class Individuo :
+class Individuo:
   def __init__(self, IndId):
     # Constantes
     self.CONTROL_BORROSO_SIZE = 12 # tamaño del array controlBorroso
     # Variables
     self.id = IndId #Id para diferenciar un individuo de otro
     self.calidad = 0 # calidad del individuo
-    self.controlBorroso = self.initControlBorroso() # array con la funcion de pertenencia [X,X,X,Y,Y,Y,Z,Z,Z,Z,Z,Z] X = Error Y = D.Error Z = Salida
+    self.controlBorroso = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    self.initControlBorroso() # array con la funcion de pertenencia [X,X,X,Y,Y,Y,Z,Z,Z,Z,Z,Z] X = Error Y = D.Error Z = Salida
     self.probabilidad = 0 #probabilidad de ser elegido en la mutación
 
   def initControlBorroso(self):
@@ -39,8 +41,7 @@ class Individuo :
 
 class Control(Brain):
 
-  def __init__(self):
-
+  def setup(self):
     # Constantes
     self.MAX_GEN = 100
     self.MAX_ITR = 1500
@@ -74,13 +75,10 @@ class Control(Brain):
   def setCalidad(self):
     return self.MAX_ITR/self.itr
 
-  def setup(self):
-      self.itr = 0
-
   def step(self):
       self.itr = 0
 
-  def INIT(engine):
-    assert (engine.robot.requires("range-sensor") and
-           engine.robot.requires("continuous-movement"))
+def INIT(engine):
+    assert (engine.robot.requires("range-sensor")
+			and engine.robot.requires("continuous-movement")
     return Control('Control', engine)
