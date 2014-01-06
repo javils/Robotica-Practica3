@@ -8,7 +8,7 @@ class Individuo :
     # Variables
     self.id = IndId #Id para diferenciar un individuo de otro
     self.calidad = 0 # calidad del individuo
-    self.controlBorroso = initControlBorroso() # array con la funcion de pertenencia [X,X,X,Y,Y,Y,Z,Z,Z,Z,Z,Z] X = Error Y = D.Error Z = Salida
+    self.controlBorroso = self.initControlBorroso() # array con la funcion de pertenencia [X,X,X,Y,Y,Y,Z,Z,Z,Z,Z,Z] X = Error Y = D.Error Z = Salida
     self.probabilidad = 0 #probabilidad de ser elegido en la mutación
 
   def initControlBorroso(self):
@@ -38,7 +38,7 @@ class Individuo :
 
 
 class Control(Brain):
-  
+
   def __init__(self):
 
     # Constantes
@@ -47,41 +47,40 @@ class Control(Brain):
     self.MAX_IND = 20
 
     # Variables
-    self.itr = 0; #numero de iteraciones que ha relizado el robot hasta ahora
-    self.gen = 0; #generacion en la que estamos
-    self.ind = 0; #individuo en el que estamos
-    self.poblacion = range(0, MAX_IND)
+    self.itr = 0 #numero de iteraciones que ha relizado el robot hasta ahora
+    self.gen = 0 #generacion en la que estamos
+    self.ind = 0 #individuo en el que estamos
+    self.poblacion = range(0, self.MAX_IND)
     self.elite = Individuo(-1)
     probTotal = 0
 
     # Inicializamos la primera población
-    for i in range MAX_IND:
+    for i in range(self.MAX_IND):
       self.poblacion[i] = Individuo(i)
       self.poblacion[i].calidad = 1 # Para que no crashe por dividir entre 0 mas adelante
-      probTotal = probTotal + self.poblacion[i].calidad
+      self.probTotal = probTotal + self.poblacion[i].calidad
 
       # Elitismo
       if (i == 0):
         self.elite = self.poblacion[i]
-      elif (self.elite.calidad < self.poblacion[i].calidad)
+      elif (self.elite.calidad < self.poblacion[i].calidad):
         self.elite = self.poblacion[i]
 
     # Asignamos la probabilidad que tiene de ser elegido cuando se vaya a mutar.
-    for i in range MAX_IND:
-      self.poblacion[i].probabilidad = float((self.poblacion[i].calidad)/probTotal)
+    for i in range(self.MAX_IND):
+      self.poblacion[i].probabilidad = float((self.poblacion[i].calidad)/self.probTotal)
 
   # Asigna calidad a un individuo
   def setCalidad(self):
     return self.MAX_ITR/self.itr
-    
+
   def setup(self):
-      
+      self.itr = 0
 
   def step(self):
-      
+      self.itr = 0
 
-  
   def INIT(engine):
     assert (engine.robot.requires("range-sensor") and
            engine.robot.requires("continuous-movement"))
-    return Practica3('Practica3', engine)
+    return Control('Control', engine)
