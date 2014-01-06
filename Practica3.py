@@ -57,7 +57,7 @@ class Control(Brain):
     # Inicializamos la primera población
     for i in range MAX_IND:
       self.poblacion[i] = Individuo(i)
-      self.poblacion[i].calidad = self.setCalidad(1) # Para que no crashe por dividir entre 0 mas adelante
+      self.poblacion[i].calidad = 1 # Para que no crashe por dividir entre 0 mas adelante
       probTotal = probTotal + self.poblacion[i].calidad
 
       # Elitismo
@@ -70,6 +70,10 @@ class Control(Brain):
     for i in range MAX_IND:
       self.poblacion[i].probabilidad = float((self.poblacion[i].calidad)/probTotal)
 
+  # Asigna calidad a un individuo
+  def setCalidad(self):
+    return self.MAX_ITR/self.itr
+    
   def setup(self):
       
 
