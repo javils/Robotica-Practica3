@@ -93,8 +93,8 @@ class Individuo:
         newGen = self.controlBorroso[pos] + random.gauss(0, 1)  # Ahora el gen puede ser negativo, hay que tenerlo en cuenta, no nos interesa
         genPost = 0
         genAnt = 0
-        if pos < self.CONTROL_BORROSO_SIZE:
-            genPost = self.controlBorroso[pos+1]
+        if pos < self.CONTROL_BORROSO_SIZE - 1:
+            genPost = self.controlBorroso[pos +1]
         if pos > 0:
             genAnt = self.controlBorroso[pos-1]
 
@@ -232,15 +232,16 @@ class Control(Brain):
     # Posiciona al robot en una posicion aleatoria de entre 4 recolectadas.
     def posiciona(self):
         r = (int(random.random()*3))%3
-        self.robot.simulation[0].setPose(self.robot.name, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
+        self.robot.simulation[0].setPose(0, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
 
     # Devuelve 1 si el robot ha encontrado la luz, 0 en caso contrario
-    def luzEncontrada(self):
-        pos = self.robot.simulation[0].getPose(self.engine.brain.robot.name)
+    def luzEncontrada(self,ls, rs):
+        #pos = self.robot.simulation[0].getPose(0)
         # d = sqrt((x-x0)^2 + (y-y0)^2)
-        d = math.sqrt((pos[0] - self.POS_LUZ[0])**2 + (pos[1] - self.POS_LUZ[1])**2)
+        #d = math.sqrt((pos[0] - self.POS_LUZ[0])**2 + (pos[1] - self.POS_LUZ[1])**2)
 
-        if (d < self.MIN_DIST):
+        #if (d < self.MIN_DIST):
+        if ls > 0.25 or rs > 0.25:
             return 1
 
         return 0
@@ -256,6 +257,7 @@ class Control(Brain):
         if parte == MP:
             if error <= arrayDError[0]:
                 return 1.0
+
             elif error > arrayDError[1]:
                 return 0.0
             else:
@@ -437,7 +439,10 @@ class Control(Brain):
             self.fileResul.close()
             self.stop()
             return;
-        if self.itr == self.MAX_ITR or self.luzEncontrada() == 1:
+        self.robot.light[0].units = "SCALED"
+        ls = max([s.value for s in self.robot.light[0]["left"]])
+        rs = max([s.value for s in self.robot.light[0]["right"]])
+        if self.itr == self.MAX_ITR or self.luzEncontrada(ls, rs) == 1:
             self.poblacion[self.ind].calidad = self.setCalidad()
             self.itr = 0
             self.ind = self.ind + 1
@@ -456,10 +461,7 @@ class Control(Brain):
                     self.done = 1
                 else:
                     self.nuevaPoblacion()
-        else:
-            self.robot.light[0].units = "SCALED"
-            ls = max([s.value for s in self.robot.light[0]["left"]])
-            rs = max([s.value for s in self.robot.light[0]["right"]])
+        else:            
             self.error = ls - rs
             self.derror = self.errorAnt - self.error
             #print "Iteracion %d, Error %d DError %d", self.itr, self.error,self.derror
