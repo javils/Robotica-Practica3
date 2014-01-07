@@ -249,7 +249,7 @@ class Control(Brain):
     def setElite(self):
         for i in range(0, self.MAX_IND):
             if (self.poblacion[i].calidad > self.elite.calidad):
-                self.elite = self.poblacion[i].calidad
+                self.elite = self.poblacion[i]
 
     def getDErrorBorroso(self, error, parte):
         # Funcion de pertenencia de muy a la derecha
