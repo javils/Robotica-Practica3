@@ -3,11 +3,10 @@ from pyrobot.brain import Brain
 import random
 
 class Individuo:
-  def __init__(self, IndId, padre):
+  def __init__(self, padre):
     # Constantes
     self.CONTROL_BORROSO_SIZE = 12 # tamaño del array controlBorroso
     # Variables
-    self.id = IndId #Id para diferenciar un individuo de otro
     self.calidad = 0 # calidad del individuo
     self.controlBorroso = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     self.initControlBorroso(padre) # array con la funcion de pertenencia [X,X,X,Y,Y,Y,Z,Z,Z,Z,Z,Z] X = Error Y = D.Error Z = Salida
@@ -77,7 +76,6 @@ class Control(Brain):
     self.gen = 0 #generacion en la que estamos
     self.ind = 0 #individuo en el que estamos
     self.poblacion = range(0, self.MAX_IND)
-    self.elite = Individuo(-1)
 
     self.generarPoblacion(esPrimeraGeneracion=True)
 
@@ -104,16 +102,19 @@ class Control(Brain):
   def generarPoblacion(self, esPrimeraGeneracion):
       if esPrimeraGeneracion:
           for i in range(self.MAX_IND):
-            self.poblacion[i] = Individuo(i, None)
+            self.poblacion[i] = Individuo(None)
+          self.mejorIndividuo = self.poblacion[0] # Temporalmente, se coloca el mejor individuo como el primero
       else:
-          for i in range(self.MAX_IND):
-            self.poblacion[i] = Individuo(i, self.poblacion[self.elite])
+          self.poblacion[0] = self.mejorIndividuo # Se guarda el mejor de todos los individuos para la siguiente generación
+          for i in range(1, self.MAX_IND):
+            individuoAleatorio = random.uniform(0, self.MAX_IND) # Devuelve un individuo aleatorio del array, que será uno de los que se mutara para la siguiente generación
+            self.poblacion[i] = Individuo(i, self.poblacion[individuoAleatorio])
 
 # Asigna calidad a un individuo
   def setCalidad(self, individuoActual, iteracion):
     individuoActual.calidad =  1/iteracion
-    if individuoActual.calidad > self.elite.calidad:
-        self.elite = individuoActual.calidad
+    if individuoActual.calidad > self.mejorIndividuo.calidad:
+        self.mejorIndividuo = individuoActual.calidad
 
 
 def INIT(engine):
