@@ -2,6 +2,8 @@
 from pyrobot.brain import Brain
 import random
 
+from operator import attrgetter
+
 class Individuo:
   def __init__(self, padre):
     # Constantes
@@ -105,10 +107,12 @@ class Control(Brain):
             self.poblacion[i] = Individuo(None)
           self.mejorIndividuo = self.poblacion[0] # Temporalmente, se coloca el mejor individuo como el primero
       else:
-          self.poblacion[0] = self.mejorIndividuo # Se guarda el mejor de todos los individuos para la siguiente generación
+          self.poblacion.sort(key=attrgetter('Calidad'), reversed) # Ordena la población por calidad, de mayor a menor (https://wiki.python.org/moin/HowTo/Sorting)
+          # Innecesario, teniendo en cuenta que el mejor individuo es que tiene mejor calidad, por lo que ya se ha puesto primero en la ordenación anterior
+          # self.poblacion[0] = self.mejorIndividuo # Se guarda el mejor de todos los individuos para la siguiente generación
           for i in range(1, self.MAX_IND):
-            individuoAleatorio = random.uniform(0, self.MAX_IND) # Devuelve un individuo aleatorio del array, que será uno de los que se mutara para la siguiente generación
-            self.poblacion[i] = Individuo(i, self.poblacion[individuoAleatorio])
+            individuoAleatorio = random.triangular(0.0, self.MAX_IND, 0.0) # Devuelve un individuo aleatorio del array. Cuanta mejor calidad tenga el individuo, más probable es que se elija.
+            self.poblacion[i] = Individuo(i, self.poblacion[individuoAleatorio]) # El individuo seleccionado anteriormente se usara como base para generar uno nuevo
 
 # Asigna calidad a un individuo
   def setCalidad(self, individuoActual, iteracion):
