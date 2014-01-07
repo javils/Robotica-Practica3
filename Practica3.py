@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from pyrobot.brain import Brain
 import random
-
+import math
 
 class Individuo:
     def __init__(self, IndId):
@@ -48,7 +48,11 @@ class Control(Brain):
         self.MAX_GEN = 100
         self.MAX_ITR = 1500
         self.MAX_IND = 20
+        self.MIN_DIST = 0.5  # Por poner un valor, habra que ver cual es mejor.
 
+        # Array de posiciones aleatorias
+        self.POSICIONES = [[12.75746, 4.69842, 190.0714], [5.18442, 9.84676, 274.06364], [3.30373, 0.303278, 167.53044], [1.75536, 5.111311, 305.59911]]
+        self.POS_LUZ = [4.75, 4.75]
         # Variables
         self.itr = 0  # numero de iteraciones que ha relizado el robot hasta ahora
         self.gen = 0  # generacion en la que estamos
@@ -109,6 +113,21 @@ class Control(Brain):
 
             nuevapoblacion[i] = newIndividuo
 
+    # Posiciona al robot en una posicion aleatoria de entre 4 recolectadas.
+    def posiciona(self):
+        r = (random.random()*3)%3
+        self.robot.simulation[0].setPose(self.engine.brain.robot.name, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
+
+    # Devuelve 1 si el robot ha encontrado la luz, 0 en caso contrario
+    def luzEncontrada(self):
+        pos = self.robot.simulation[0].getPose(self.engine.brain.robot.name)
+        # d = sqrt((x-x0)^2 + (y-y0)^2)
+        d = math.sqrt((pos[0] - self.POS_LUZ[0])**2 + (pos[1] - self.POS_LUZ[1])**2)
+
+        if (d < self.MIN_DIST):
+            return 1
+
+        return 0
     # Asigna un elite en la poblacion
     def setElite(self):
         for i in range(0, self.MAX_IND):
@@ -116,7 +135,7 @@ class Control(Brain):
                 self.elite = self.poblacion[i].calidad
 
     def step(self):
-        if self.itr == self.MAX_ITR or self.luzEncontrada():
+        if self.itr == self.MAX_ITR or self.luzEncontrada() == 1:
             self.poblacion[self.ind].calidad = self.setCalidad()
             self.itr = 0
             self.ind = self.ind + 1
@@ -125,7 +144,9 @@ class Control(Brain):
                 self.ind = 0
                 self.gen = self.gen + 1
                 self.setElite()
+                print self.gen
                 if self.gen == self.MAX_GEN:
+                    print "Finalizado"
                     done = 1
                 else:
                     self.nuevaPoblacion()
