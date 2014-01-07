@@ -138,7 +138,7 @@ class Control(Brain):
     def setup(self):
         # Constantes
         self.MAX_GEN = 100
-        self.MAX_ITR = 200
+        self.MAX_ITR = 500
         self.MAX_IND = 20
         self.MIN_DIST = 0.5  # Por poner un valor, habra que ver cual es mejor.
 
@@ -167,12 +167,14 @@ class Control(Brain):
         self.itr = 0  # numero de iteraciones que ha relizado el robot hasta ahora
         self.gen = 0  # generacion en la que estamos
         self.ind = 0  # individuo en el que estamos
+        self.done = 0
         self.poblacion = range(0, self.MAX_IND)
         self.probTotal = 0
         self.error = 0
         self.errorAnt = 0
         self.derror = 0
         self.elite = Individuo(-1)
+        self.fileResul = open("resul.txt" , "w")
         self.initPoblacion()
         self.posiciona()
 
@@ -430,6 +432,11 @@ class Control(Brain):
         self.motors(leftSpeed, rightSpeed)
 
     def step(self):
+        if self.done == 1:
+            self.fileResul.flush()
+            self.fileResul.close()
+            self.stop()
+            return;
         if self.itr == self.MAX_ITR or self.luzEncontrada() == 1:
             self.poblacion[self.ind].calidad = self.setCalidad()
             self.itr = 0
@@ -440,10 +447,13 @@ class Control(Brain):
                 self.ind = 0
                 self.gen = self.gen + 1
                 self.setElite()
+                self.fileResul.write("Generacion: " + str(self.gen) + " : \n" + "Calidad : " + str(self.elite.calidad) + "\n"
+                                        + "Individuo: \n" + str(self.elite.controlBorroso))
+                self.fileResul.flush()
                 print self.gen
                 if self.gen == self.MAX_GEN:
                     print "Finalizado"
-                    done = 1
+                    self.done = 1
                 else:
                     self.nuevaPoblacion()
         else:
