@@ -228,6 +228,7 @@ class Control(Brain):
             newIndividuo.muta()
 
             nuevapoblacion[i] = newIndividuo
+        self.poblacion = nuevapoblacion  # Muy importante añadir esto -.-"
 
     # Posiciona al robot en una posicion aleatoria de entre 4 recolectadas.
     def posiciona(self):
