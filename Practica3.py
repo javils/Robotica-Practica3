@@ -40,6 +40,37 @@ class Individuo:
         self.controlBorroso[10] = aux[4]
         self.controlBorroso[11] = aux[5]
 
+    # muta aleatoriamente un numero aleatorio de genes
+    def muta(self):
+        numMutaciones = (int(random.random()*self.CONTROL_BORROSO_SIZE))%self.CONTROL_BORROSO_SIZE
+
+        for i in range(numMutaciones):
+            genMutado = (int(random.random()*self.CONTROL_BORROSO_SIZE))%self.CONTROL_BORROSO_SIZE
+            self.mutaGen(genMutado)
+
+    # muta un gen dado.
+    def mutaGen(self, pos):
+        newGen = self.controlBorroso[pos] + random.gauss(0, 1)  # Ahora el gen puede ser negativo, hay que tenerlo en cuenta, no nos interesa
+        genPost = 0
+        genAnt = 0
+        if pos < self.CONTROL_BORROSO_SIZE:
+            genPost = self.controlBorroso[pos+1]
+        if pos > 0:
+            genAnt = self.controlBorroso[pos-1]
+
+        # Verificamos que sigue siendo una funcion de pertenencia borrosa
+        if (pos == 0 or pos == 3 or pos == 6):  # Primeras posiciones de cada "bloque" (Error, Derivada, Salida)
+            if (newGen > genPost or newGen < 0):
+                newGen = genPost/2  # Asi nos aseguramos que siempre sera menor.
+        elif (pos == 2 or pos == 5 or pos == 11):  # Ultimas posiciones de cada "bloque"
+            if (newGen < genAnt):
+                newGen = genAnt + (self.controlBorroso[pos] - genAnt)/2 # Nos aseguramos que sea mayor
+        else:
+            if (newGen > genPost or newGen < genAnt):  # Posiciones intermedias de cada "bloque"
+                newGen = genAnt + (genPost - genAnt)/2 # Aseguramos que el valor este entre medias.
+
+        self.controlBorroso[pos] = newGen
+
 
 class Control(Brain):
 
@@ -61,6 +92,7 @@ class Control(Brain):
         self.probTotal = 0
         self.elite = Individuo(-1)
         self.initPoblacion()
+        self.posiciona()
 
     # Inicializa la primera poblacion que se usara con individuos
     def initPoblacion(self):
@@ -115,8 +147,8 @@ class Control(Brain):
 
     # Posiciona al robot en una posicion aleatoria de entre 4 recolectadas.
     def posiciona(self):
-        r = (random.random()*3)%3
-        self.robot.simulation[0].setPose(self.engine.brain.robot.name, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
+        r = (int(random.random()*3))%3
+        self.robot.simulation[0].setPose(self.robot.name, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
 
     # Devuelve 1 si el robot ha encontrado la luz, 0 en caso contrario
     def luzEncontrada(self):
