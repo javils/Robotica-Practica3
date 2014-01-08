@@ -121,6 +121,21 @@ class Control(Brain):
         self.mejorIndividuo = individuoActual.calidad
 
 
+  def determineMove(self, front, left, right, ls, rs, Individuo):
+    return self.movimientoluces(ls, rs, Individuo)# Avanza la velocidad y gira el angulo devuelto por anguloluces()
+
+
+  # Devuelve el angulo hacia la luz, ignorando los obstaculos. Desde otra funcion se deben tener en cuenta los obstaculos.
+   def movimientoluces(self, ls, rs):
+       errorAnterior = 0
+       error = ls - rs
+       derivadaError = (error - errorAnterior) / self.itr
+       return pertenencia(error, derivadaError, Individuo)
+
+  def pertenencia(self, error, derivadaError, Individuo):
+        particionesError =
+
+
 def INIT(engine):
     assert (engine.robot.requires("range-sensor")
 			and engine.robot.requires("continuous-movement"))
