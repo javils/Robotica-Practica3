@@ -138,9 +138,8 @@ class Control(Brain):
     def setup(self):
         # Constantes
         self.MAX_GEN = 100
-        self.MAX_ITR = 500
-        self.MAX_IND = 20
-        self.MIN_DIST = 0.5  # Por poner un valor, habra que ver cual es mejor.
+        self.MAX_ITR = 200
+        self.MAX_IND = 10
 
         # Array de posiciones aleatorias
         self.POSICIONES = [[12.75746, 4.69842, 190.0714], [5.18442, 9.84676, 274.06364], [3.30373, 0.303278, 167.53044], [1.75536, 5.111311, 305.59911]]
@@ -194,11 +193,11 @@ class Control(Brain):
 
         # Asignamos la probabilidad que tiene de ser elegido cuando se vaya a mutar.
         for i in range(self.MAX_IND):
-            self.poblacion[i].probabilidad = float((self.poblacion[i].calidad) / self.probTotal)
+            self.poblacion[i].probabilidad = float((self.poblacion[i].calidad) / float(self.probTotal))
 
     # Asigna calidad a un individuo
     def setCalidad(self):
-        return float(self.MAX_ITR / self.itr)
+        return float(self.MAX_ITR / float(self.itr))
 
     # Crea una nueva poblacion de individuos mutandolos.
     def nuevaPoblacion(self):
@@ -222,6 +221,8 @@ class Control(Brain):
             for j in range (0, self.MAX_IND):
                 if (prob < tablaProb[j][1]):
                    pos = j
+                   break
+            print pos
 
             newIndividuo = self.poblacion[pos]
             newIndividuo.id = tablaProb[pos][0]
@@ -232,7 +233,7 @@ class Control(Brain):
 
     # Posiciona al robot en una posicion aleatoria de entre 4 recolectadas.
     def posiciona(self):
-        r = (int(random.random()*3))%3
+        r = (int(random.random()*4))%4
         self.robot.simulation[0].setPose(0, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
 
     # Devuelve 1 si el robot ha encontrado la luz, 0 en caso contrario
@@ -246,6 +247,18 @@ class Control(Brain):
             return 1
 
         return 0
+
+    # Asigna Probabilidad a los individuos
+    def setProb(self):
+    	self.probTotal = 0
+    	for i in range(0, self.MAX_IND):
+    		self.probTotal = self.probTotal + self.poblacion[i].calidad
+
+    	print self.probTotal
+
+    	for i in range(0, self.MAX_IND):
+    		self.poblacion[i].probabilidad = float((self.poblacion[i].calidad) / float(self.probTotal))
+
     # Asigna un elite en la poblacion
     def setElite(self):
         for i in range(0, self.MAX_IND):
@@ -409,12 +422,17 @@ class Control(Brain):
         contSR = math.sqrt(contSR)
         contGI = math.sqrt(contGI)
         contGMI = math.sqrt(contGMI)
+        
+        denom = 0
+        if (contGMI+contGI+contSR+contGD+contGMD) == 0:
+        	denom = 0.0001
+        else:
+        	denom = (contGMI+contGI+contSR+contGD+contGMD)
 
         # Centro de gravedad
         self.funcionOut = self.poblacion[self.ind].funcionSalida
         desborrosificacion = ((self.funcionOut[0]+(self.funcionOut[3]-self.funcionOut[0])/2)*contGMI + (self.funcionOut[2]+(self.funcionOut[5]-self.funcionOut[2])/2)*contGI  +  (self.funcionOut[4]+(self.funcionOut[7]-self.funcionOut[4])/2)*contSR  +  (self.funcionOut[6]+(self.funcionOut[9]-self.funcionOut[6])/2)*contGD + (self.funcionOut[8]+(self.funcionOut[11]-self.funcionOut[8])/2)*contGMD)/\
-                      (contGMI+contGI+contSR+contGD+contGMD)
-
+                      (denom)
         return desborrosificacion
 
 
@@ -453,8 +471,9 @@ class Control(Brain):
                 self.ind = 0
                 self.gen = self.gen + 1
                 self.setElite()
+                self.setProb()
                 self.fileResul.write("Generacion: " + str(self.gen) + " : \n" + "Calidad : " + str(self.elite.calidad) + "\n"
-                                        + "Individuo: \n" + str(self.elite.controlBorroso))
+                                        + "Individuo: \n" + str(self.elite.controlBorroso) + "\n")
                 self.fileResul.flush()
                 print self.gen
                 if self.gen == self.MAX_GEN:
