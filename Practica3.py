@@ -198,7 +198,7 @@ class Control(Brain):
 
     # Asigna calidad a un individuo
     def setCalidad(self):
-        return self.MAX_ITR / self.itr
+        return float(self.MAX_ITR / self.itr)
 
     # Crea una nueva poblacion de individuos mutandolos.
     def nuevaPoblacion(self):
