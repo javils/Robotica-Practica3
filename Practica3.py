@@ -6,7 +6,7 @@ import math
 class Individuo:
     def __init__(self, IndId):
         # Variables
-        self.id = IndId  # Id para diferenciar un individuo de otro
+        self.id = IndId  # Identificador para diferenciar individuos
         self.calidad = 0  # Calidad del individuo
         self.genes = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # Array con la funcion de pertenencia. Los 3 primeros valores son el error,
         # los 3 siguientes la derivada del error y los 6 restantes la salida
@@ -50,7 +50,7 @@ class Individuo:
         self.funcionError[0] = -self.genes[2]
         self.funcionError[1] = -self.genes[1]
         self.funcionError[2] = -self.genes[0]
-        self.funcionError[3] = 0  # Este valor siempre es 0, ya que es el eje de simetria de la funcion
+        self.funcionError[3] = 0  # Eje de simetria de la funcion, siempre 0
         self.funcionError[4] = self.genes[0]
         self.funcionError[5] = self.genes[1]
         self.funcionError[6] = self.genes[2]
@@ -59,7 +59,7 @@ class Individuo:
         self.funcionDError[0] = -self.genes[5]
         self.funcionDError[1] = -self.genes[4]
         self.funcionDError[2] = -self.genes[3]
-        self.funcionDError[3] = 0  # Este valor siempre es 0, ya que es el eje de simetria de la funcion
+        self.funcionDError[3] = 0  # Eje de simetria de la funcion, siempre 0
         self.funcionDError[4] = self.genes[3]
         self.funcionDError[5] = self.genes[4]
         self.funcionDError[6] = self.genes[5]
@@ -78,7 +78,7 @@ class Individuo:
         self.funcionSalida[10] = self.genes[10]
         self.funcionSalida[11] = self.genes[11]
 
-    # muta aleatoriamente un numero aleatorio de genes
+    # funcion para mutar aleatoriamente un numero aleatorio de genes
     def mutar(self):
         for i in range(len(self.genes)):
             newGen = self.genes[i] + random.gauss(0, 1)  # Ahora el gen puede ser negativo, hay que tenerlo en cuenta, no nos interesa
@@ -104,18 +104,18 @@ class Individuo:
         self.generarFunciones(self)
 
 # Tipos de errores, de muy negativo a muy positivo
-MD = 0
-D = 1
-Z = 2
-I = 3
-MI = 4
+MD = 0	# Muy Derecha
+D = 1	# Derecha
+Z = 2	# Cero
+I = 3	# Izquierda
+MI = 4	# Muy Izquierda
 
 # Tipos de derivadas de errores, de muy negativa a muy positivas
-MP = 0  # DError Positiva
-P = 1
-Z = 2
-N = 3
-MN = 4  # DError Negativa
+MP = 0  # DError Muy Positiva
+P = 1	# DError Positiva
+Z = 2	# DError cero
+N = 3	# DError Negativa
+MN = 4  # DError Muy Negativa
 
 # Tipos de salidas, de girar mucho a la derecha a girar mucho a la izquierda
 GMD = 0  # Girar mucho a la derecha
