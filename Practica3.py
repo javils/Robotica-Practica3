@@ -178,15 +178,14 @@ class Control(Brain):
     # Crea una nueva poblacion de individuos mutandolos.
     def nuevaPoblacion(self):
         # El primer individuo el mejor de la generacion anterior
-        nuevapoblacion = range(0, self.MAX_IND)
-        nuevapoblacion[0] = self.mejorIndividuo
+        nuevaPoblacion = range(0, self.MAX_IND)
+        nuevaPoblacion[0] = self.mejorIndividuo
         # Creamos la "ruleta" de probabilidades
         tablaProb = range(0, self.MAX_IND)
         probAcum = 0  # Probabilidad acumulada hasta el momento. Se usará para elegir a los infividuos para la próxima generación.
         for i in range(0, self.MAX_IND):
             probAcum = probAcum + self.poblacion[i].probabilidad
             tablaProb[i] = [self.poblacion[i].id, probAcum]
-
         # Mutamos los individuos y los añadimos a la nueva poblacion
         for i in range(1, self.MAX_IND):
             prob = random.random()
@@ -196,92 +195,40 @@ class Control(Brain):
                 if (prob < tablaProb[j][1]):
                    pos = j
                    break
-            print pos
-
-            newIndividuo = self.poblacion[pos]
-            newIndividuo.id = tablaProb[pos][0]
-            newIndividuo.mutar()
-
-            nuevapoblacion[i] = newIndividuo
-        self.poblacion = nuevapoblacion
+            nuevoIndividuo = self.poblacion[pos]
+            nuevoIndividuo.id = tablaProb[pos][0]
+            nuevoIndividuo.mutar()
+            nuevaPoblacion[i] = nuevoIndividuo
+        self.poblacion = nuevaPoblacion
 
     # Devuelve True si el robot ha encontrado la luz, False en caso contrario
     def luzEncontrada(self,ls, rs):
         if ls > 0.25 or rs > 0.25:
             return True
-        return False
-
-    # Asigna Probabilidad a los individuos
-    def setProb(self):
-    	self.probTotal = 0
-    	for i in range(0, self.MAX_IND):
-    		self.probTotal = self.probTotal + self.poblacion[i].calidad
-
-    	print self.probTotal
-
-    	for i in range(0, self.MAX_IND):
-    		self.poblacion[i].probabilidad = float((self.poblacion[i].calidad) / float(self.probTotal))
-
-    # Asigna un elite en la poblacion
-    def setElite(self):
-        for i in range(0, self.MAX_IND):
-            if (self.poblacion[i].calidad > self.mejorIndividuo.calidad):
-                self.mejorIndividuo = self.poblacion[i]
-
-    def getDErrorBorroso(self, error, parte):
-        # Funcion de pertenencia de muy a la derecha
-        arrayDError = self.poblacion[self.individuo].funcionDError
-        if parte == MP:
-            if error <= arrayDError[0]:
-                return 1.0
-
-            elif error > arrayDError[1]:
-                return 0.0
-            else:
-                return (arrayDError[1] - error)/(arrayDError[1] - arrayDError[0])
-        elif parte == P:
-            if error <= arrayDError[0]:
-                return 0.0
-            elif (error > arrayDError[0] and error < arrayDError[1]):
-                return (error - arrayDError[0])/(arrayDError[1] - arrayDError[0])
-            elif (error >= arrayDError[1] and error <= arrayDError[2]):
-                return 1.0
-            elif (error > arrayDError[2]  and error < arrayDError[3]):
-                return (arrayDError[3] - error)/(arrayDError[3] - arrayDError[2])
-            else:
-                return 0.0
-        elif parte == Z:
-            if error <= arrayDError[2]:
-                return 0.0
-            elif (error > arrayDError[2] and error < arrayDError[3]):
-                return (error - arrayDError[2])/(arrayDError[3] - arrayDError[2])
-            elif (error > arrayDError[3]  and error < arrayDError[4]):
-                return (arrayDError[4] - error)/(arrayDError[4] - arrayDError[3])
-            else:
-                return 0.0
-        elif parte == N:
-            if error <= arrayDError[3]:
-                return 0.0
-            elif (error > arrayDError[3] and error < arrayDError[4]):
-                return (error - arrayDError[3])/(arrayDError[4] - arrayDError[3])
-            elif (error >= arrayDError[4] and error <= arrayDError[5]):
-                return 1.0
-            elif (error > arrayDError[5]  and error < arrayDError[6]):
-                return (arrayDError[6] - error)/(arrayDError[6] - arrayDError[5])
-            else:
-                return 0.0
-        elif parte == MN:
-            if error <= arrayDError[5]:
-                return 1.0
-            elif error > arrayDError[6]:
-                return 0.0
-            else:
-                return (error - arrayDError[5])/(arrayDError[6] - arrayDError[5])
         else:
-            print "DError"
+            return False
+
+
+    # Controla el movimiento del robot
+    def determineMove(self, error, derror):
+        self.borrosifica(error,derror)
+        leftSpeed = 0.5
+        rightSpeed = 0.5
+        valor = self.desborrosifica()
+        if valor < 0:
+            leftSpeed = -valor*leftSpeed
+        else:
+            rightSpeed = valor*rightSpeed
+        self.motors(leftSpeed, rightSpeed)
+
+
+     # Borrosifica el error y la derivada del error
+    def borrosificar(self, e, de):
+        self.errorBorrosificado = [self.getErrorBorroso(e,MD), self.getErrorBorroso(e,D), self.getErrorBorroso(e,Z), self.getErrorBorroso(e,I), self.getErrorBorroso(e,MI)]
+        self.dErrorBorrosificado = [self.getDErrorBorroso(de,MP), self.getDErrorBorroso(de,P), self.getDErrorBorroso(de,Z), self.getDErrorBorroso(de,N), self.getDErrorBorroso(de,MN)]
+
 
     def getErrorBorroso(self, error, parte):
-        # Funcion de pertenencia de muy a la derecha
         arrayError = self.poblacion[self.individuo].funcionError
         if parte == MD:
             if error <= arrayError[0]:
@@ -331,24 +278,65 @@ class Control(Brain):
         else:
             print "Error"
 
-    # Borrosifica el error y la derivada del error
-    def borrosifica(self, e, de):
-        self.errorBorrosificado = [self.getErrorBorroso(e,MD), self.getErrorBorroso(e,D), self.getErrorBorroso(e,Z),
-                                   self.getErrorBorroso(e,I), self.getErrorBorroso(e,MI)]
 
-        self.dErrorBorrosificado = [self.getDErrorBorroso(de,MP), self.getDErrorBorroso(de,P), self.getDErrorBorroso(de,Z),
-                                    self.getDErrorBorroso(de,N), self.getDErrorBorroso(de,MN)]
+    def getDErrorBorroso(self, error, particion):
+        arrayDError = self.poblacion[self.individuo].funcionDError
+        if particion == MP:
+            if error <= arrayDError[0]:
+                return 1.0
 
-    # Aplicamos las reglas de inferencia en la tabla FAM para desborrosificar
-    def desborrosifica(self):
-        # Array que contiene el valor y la salida
+            elif error > arrayDError[1]:
+                return 0.0
+            else:
+                return (arrayDError[1] - error)/(arrayDError[1] - arrayDError[0])
+        elif particion == P:
+            if error <= arrayDError[0]:
+                return 0.0
+            elif (error > arrayDError[0] and error < arrayDError[1]):
+                return (error - arrayDError[0])/(arrayDError[1] - arrayDError[0])
+            elif (error >= arrayDError[1] and error <= arrayDError[2]):
+                return 1.0
+            elif (error > arrayDError[2]  and error < arrayDError[3]):
+                return (arrayDError[3] - error)/(arrayDError[3] - arrayDError[2])
+            else:
+                return 0.0
+        elif particion == Z:
+            if error <= arrayDError[2]:
+                return 0.0
+            elif (error > arrayDError[2] and error < arrayDError[3]):
+                return (error - arrayDError[2])/(arrayDError[3] - arrayDError[2])
+            elif (error > arrayDError[3]  and error < arrayDError[4]):
+                return (arrayDError[4] - error)/(arrayDError[4] - arrayDError[3])
+            else:
+                return 0.0
+        elif particion == N:
+            if error <= arrayDError[3]:
+                return 0.0
+            elif (error > arrayDError[3] and error < arrayDError[4]):
+                return (error - arrayDError[3])/(arrayDError[4] - arrayDError[3])
+            elif (error >= arrayDError[4] and error <= arrayDError[5]):
+                return 1.0
+            elif (error > arrayDError[5]  and error < arrayDError[6]):
+                return (arrayDError[6] - error)/(arrayDError[6] - arrayDError[5])
+            else:
+                return 0.0
+        elif particion == MN:
+            if error <= arrayDError[5]:
+                return 1.0
+            elif error > arrayDError[6]:
+                return 0.0
+            else:
+                return (error - arrayDError[5])/(arrayDError[6] - arrayDError[5])
+        else:
+            print "DError"
+
+
+    def desborrosificar(self):
         reglas =[[0, 0],[0, 0],[0, 0],[0, 0],[0, 0],
 				[0, 0],[0, 0],[0, 0],[0, 0],[0, 0],
 				[0, 0],[0, 0],[0, 0],[0, 0],[0, 0],
 				[0, 0],[0, 0],[0, 0],[0, 0],[0, 0],
 				[0, 0],[0, 0],[0, 0],[0, 0],[0, 0]]
-
-        # Inferencia
         count = 0
         for i in range(0,5):
             for j in range(0,5):
@@ -357,18 +345,14 @@ class Control(Brain):
                 reglas[count][0] = valor
                 reglas[count][1] = salida
                 count = count + 1
-
-        # Contribucion de cada cada regla en la salida
         contGMI = 0
         contGI = 0
         contSR = 0
         contGD = 0
         contGMD = 0
-
         for i in range(0,25):
             tipo = reglas[i][1]
             valor = reglas[i][0]
-
             if tipo == GMI:
                 contGMI = contGMI + valor**2
             elif tipo == GI:
@@ -379,48 +363,28 @@ class Control(Brain):
                 contGD = contGD + valor**2
             else:
                 contGMD = contGMD + valor**2
-
         contGMD = math.sqrt(contGMD)
         contGD = math.sqrt(contGD)
         contSR = math.sqrt(contSR)
         contGI = math.sqrt(contGI)
         contGMI = math.sqrt(contGMI)
-        
         denom = 0
         if (contGMI+contGI+contSR+contGD+contGMD) == 0:
-        	denom = 0.0001
+            denom = 0.0001
         else:
-        	denom = (contGMI+contGI+contSR+contGD+contGMD)
-
+            denom = (contGMI+contGI+contSR+contGD+contGMD)
         # Centro de gravedad
         self.funcionOut = self.poblacion[self.individuo].funcionSalida
         desborrosificacion = ((self.funcionOut[0]+(self.funcionOut[3]-self.funcionOut[0])/2)*contGMI + (self.funcionOut[2]+(self.funcionOut[5]-self.funcionOut[2])/2)*contGI  +  (self.funcionOut[4]+(self.funcionOut[7]-self.funcionOut[4])/2)*contSR  +  (self.funcionOut[6]+(self.funcionOut[9]-self.funcionOut[6])/2)*contGD + (self.funcionOut[8]+(self.funcionOut[11]-self.funcionOut[8])/2)*contGMD)/\
                       (denom)
         return desborrosificacion
 
-
-    # movera el robot segun el control borroso que tenga
-    def determineMove(self, error, derror):
-        self.borrosifica(error,derror)
-
-        leftSpeed = 0.5
-        rightSpeed = 0.5
-        valor = self.desborrosifica()
-
-        #print "Valor %d" ,(valor)
-        if valor < 0:
-            leftSpeed = -valor*leftSpeed
-        else:
-            rightSpeed = valor*rightSpeed
-        #print "Motor derecho %d  Motor izquierdo %d" ,rightSpeed, leftSpeed
-        self.motors(leftSpeed, rightSpeed)
-
     def step(self):
         if self.done:
             self.ficheroSalida.flush()
             self.ficheroSalida.close()
             self.stop()
-            return;
+            return
         self.robot.light[0].units = "SCALED"
         ls = max([s.value for s in self.robot.light[0]["left"]])
         rs = max([s.value for s in self.robot.light[0]["right"]])
@@ -440,18 +404,28 @@ class Control(Brain):
                 self.ficheroSalida.flush()
                 print self.generacion
                 if self.generacion == self.MAX_GEN:
-                    print "Finalizado"
+                    print "Fin del programa"
                     self.done = True
                 else:
                     self.nuevaPoblacion()
         else:            
             self.error = ls - rs
             self.derror = self.errorAnt - self.error
-            #print "Iteracion %d, Error %d DError %d", self.itr, self.error,self.derror
             self.determineMove(self.error, self.derror)
-
             self.errorAnt = self.error
             self.iteracion = self.iteracion + 1
+
+    def setProb(self):
+        self.probTotal = 0
+        for i in range(0, self.MAX_IND):
+            self.probTotal = self.probTotal + self.poblacion[i].calidad
+            for i in range(0, self.MAX_IND):
+                self.poblacion[i].probabilidad = float((self.poblacion[i].calidad) / float(self.probTotal))
+
+    def setElite(self):
+        for i in range(0, self.MAX_IND):
+            if (self.poblacion[i].calidad > self.mejorIndividuo.calidad):
+                self.mejorIndividuo = self.poblacion[i]
 
 def INIT(engine):
     assert (engine.robot.requires("range-sensor")
