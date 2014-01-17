@@ -132,19 +132,17 @@ class Control(Brain):
         self.MAX_ITR = 200
         self.MAX_IND = 10
         self.POSICIONES = [[12.75746, 4.69842, 190.0714], [5.18442, 9.84676, 274.06364], [3.30373, 0.303278, 167.53044], [1.75536, 5.111311, 305.59911]]  # Array de posiciones aleatorias
-        self.POS_LUZ = [4.75, 4.75]
         self.FAM = [[SR, GD, GMI, GI,  GMI],
                     [GD,  GD,  GI,  SR,  GI ],
                     [GMD, GD,  SR,  GI,  GMI ],
                     [GD,  GD,  GD,  GI,  GI],
                     [GMD,  GMD, GMD, SR,  SR ]]
-        self.errorBorrosificado = range(0, 5) # Error y derivada del error borrosificadas
-        self.derrorBorrosificado = range(0, 5) # Error y derivada del error desborrosificadas
-
+        self.errorBorrosificado = range(0, 5) # Error borrosificado
+        self.dErrorBorrosificado = range(0, 5) # Derivada del error desborrosificadas
         # Variables
-        self.itr = 0  # Número de steps que lleva el robot
-        self.gen = 0  # Generación actual
-        self.ind = 0  # Individuo actual
+        self.iteracion = 0  # Número de steps que lleva el robot
+        self.generacion = 0  # Generación actual
+        self.individuo = 0  # Individuo actual
         self.done = False # Variable que indica cuando se ha terminado con el programa
         self.poblacion = range(0, self.MAX_IND) # Array con los individuos de la población actual
         self.probTotal = 0
@@ -236,7 +234,7 @@ class Control(Brain):
 
     def getDErrorBorroso(self, error, parte):
         # Funcion de pertenencia de muy a la derecha
-        arrayDError = self.poblacion[self.ind].funcionDError
+        arrayDError = self.poblacion[self.individuo].funcionDError
         if parte == MP:
             if error <= arrayDError[0]:
                 return 1.0
@@ -288,7 +286,7 @@ class Control(Brain):
 
     def getErrorBorroso(self, error, parte):
         # Funcion de pertenencia de muy a la derecha
-        arrayError = self.poblacion[self.ind].funcionError
+        arrayError = self.poblacion[self.individuo].funcionError
         if parte == MD:
             if error <= arrayError[0]:
                 return 1.0
@@ -342,7 +340,7 @@ class Control(Brain):
         self.errorBorrosificado = [self.getErrorBorroso(e,MD), self.getErrorBorroso(e,D), self.getErrorBorroso(e,Z),
                                    self.getErrorBorroso(e,I), self.getErrorBorroso(e,MI)]
 
-        self.derrorBorrosificado = [self.getDErrorBorroso(de,MP), self.getDErrorBorroso(de,P), self.getDErrorBorroso(de,Z),
+        self.dErrorBorrosificado = [self.getDErrorBorroso(de,MP), self.getDErrorBorroso(de,P), self.getDErrorBorroso(de,Z),
                                     self.getDErrorBorroso(de,N), self.getDErrorBorroso(de,MN)]
 
     # Aplicamos las reglas de inferencia en la tabla FAM para desborrosificar
@@ -359,7 +357,7 @@ class Control(Brain):
         for i in range(0,5):
             for j in range(0,5):
                 salida = self.FAM[i][j]
-                valor = min(self.errorBorrosificado[i], self.derrorBorrosificado[j])
+                valor = min(self.errorBorrosificado[i], self.dErrorBorrosificado[j])
                 reglas[count][0] = valor
                 reglas[count][1] = salida
                 count = count + 1
@@ -399,7 +397,7 @@ class Control(Brain):
         	denom = (contGMI+contGI+contSR+contGD+contGMD)
 
         # Centro de gravedad
-        self.funcionOut = self.poblacion[self.ind].funcionSalida
+        self.funcionOut = self.poblacion[self.individuo].funcionSalida
         desborrosificacion = ((self.funcionOut[0]+(self.funcionOut[3]-self.funcionOut[0])/2)*contGMI + (self.funcionOut[2]+(self.funcionOut[5]-self.funcionOut[2])/2)*contGI  +  (self.funcionOut[4]+(self.funcionOut[7]-self.funcionOut[4])/2)*contSR  +  (self.funcionOut[6]+(self.funcionOut[9]-self.funcionOut[6])/2)*contGD + (self.funcionOut[8]+(self.funcionOut[11]-self.funcionOut[8])/2)*contGMD)/\
                       (denom)
         return desborrosificacion
@@ -430,22 +428,22 @@ class Control(Brain):
         self.robot.light[0].units = "SCALED"
         ls = max([s.value for s in self.robot.light[0]["left"]])
         rs = max([s.value for s in self.robot.light[0]["right"]])
-        if self.itr == self.MAX_ITR or self.luzEncontrada(ls, rs):
-            self.poblacion[self.ind].calidad = float(self.MAX_ITR / float(self.itr))
-            self.itr = 0
-            self.ind = self.ind + 1
+        if self.iteracion == self.MAX_ITR or self.luzEncontrada(ls, rs):
+            self.poblacion[self.individuo].calidad = float(self.MAX_ITR / float(self.iteracion))
+            self.iteracion = 0
+            self.individuo = self.individuo + 1
             self.posiciona()
-            print self.ind
-            if self.ind == self.MAX_IND:
-                self.ind = 0
-                self.gen = self.gen + 1
+            print self.individuo
+            if self.individuo == self.MAX_IND:
+                self.individuo = 0
+                self.generacion = self.generacion + 1
                 self.setElite()
                 self.setProb()
-                self.ficheroSalida.write("Generacion: " + str(self.gen) + " : \n" + "Calidad : " + str(self.mejorIndividuo.calidad) + "\n"
+                self.ficheroSalida.write("Generacion: " + str(self.generacion) + " : \n" + "Calidad : " + str(self.mejorIndividuo.calidad) + "\n"
                                         + "Individuo: \n" + str(self.mejorIndividuo.controlBorroso) + "\n")
                 self.ficheroSalida.flush()
-                print self.gen
-                if self.gen == self.MAX_GEN:
+                print self.generacion
+                if self.generacion == self.MAX_GEN:
                     print "Finalizado"
                     self.done = True
                 else:
@@ -457,7 +455,7 @@ class Control(Brain):
             self.determineMove(self.error, self.derror)
 
             self.errorAnt = self.error
-            self.itr = self.itr + 1
+            self.iteracion = self.iteracion + 1
 
 def INIT(engine):
     assert (engine.robot.requires("range-sensor")
