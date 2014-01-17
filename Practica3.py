@@ -5,132 +5,123 @@ import math
 
 class Individuo:
     def __init__(self, IndId):
-        # Constantes
-        self.CONTROL_BORROSO_SIZE = 12  # tamaño del array controlBorroso
-
         # Variables
         self.id = IndId  # Id para diferenciar un individuo de otro
-        self.calidad = 0  # calidad del individuo
-        self.controlBorroso = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.initControlBorroso()  # array con la funcion de pertenencia [X,X,X,Y,Y,Y,Z,Z,Z,Z,Z,Z] X = Error Y = D.Error Z = Salida
-        self.probabilidad = 0  # probabilidad de ser elegido en la mutación
-        self.funcionError = range(0, 7)  # Hay 7 puntos de corte con el eje
-        self.funcionDError = range(0, 7)  # Hay 7 puntos de corte con el eje
-        self.funcionSalida = range(0, 12)   # Hay 12 puntos de corte con el eje
+        self.calidad = 0  # Calidad del individuo
+        self.genes = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # Array con la funcion de pertenencia. Los 3 primeros valores son el error,
+        # los 3 siguientes la derivada del error y los 6 restantes la salida
+        self.generarGenes()
+        self.probabilidad = 0  # Probabilidad de ser elegido para la próxima generación
+        #Inicializamios las funciones
+        self.funcionError = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.funcionDError = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.funcionSalida = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.generarFunciones()
 
-        self.actualizaFunciones()
-
-    def initControlBorroso(self):
+    # Devuelve los genes del individuo, generados aleatoriamente.
+    def generarGenes(self):
         # Error
         aux = [random.random() for col in range(3)]
-        aux.sort()  # ordenamos para que los puntos de corte de la funcion de pertenencia esten ordenados
-        self.controlBorroso[0] = aux[0]
-        self.controlBorroso[1] = aux[1]
-        self.controlBorroso[2] = aux[2]
+        aux.sort()  # a < b < c
+        self.genes[0] = aux[0]
+        self.genes[1] = aux[1]
+        self.genes[2] = aux[2]
 
         # Derivada del error
         aux = [random.random() for col in range(3)]
-        aux.sort()  # ordenamos para que los puntos de corte de la funcion de pertenencia esten ordenados
-        self.controlBorroso[3] = aux[0]
-        self.controlBorroso[4] = aux[1]
-        self.controlBorroso[5] = aux[2]
+        aux.sort()  # d < e < f
+        self.genes[3] = aux[0]
+        self.genes[4] = aux[1]
+        self.genes[5] = aux[2]
 
         # Salida
         aux = [random.random() for col in range(6)]
-        aux.sort()  # ordenamos para que los puntos de corte de la funcion de pertenencia esten ordenados
-        self.controlBorroso[6] = aux[0]
-        self.controlBorroso[7] = aux[1]
-        self.controlBorroso[8] = aux[2]
-        self.controlBorroso[9] = aux[3]
-        self.controlBorroso[10] = aux[4]
-        self.controlBorroso[11] = aux[5]
+        aux.sort()  # g < h < i < j < k < l
+        self.genes[6] = aux[0]
+        self.genes[7] = aux[1]
+        self.genes[8] = aux[2]
+        self.genes[9] = aux[3]
+        self.genes[10] = aux[4]
+        self.genes[11] = aux[5]
 
-    # Actualiza los valores de las funciones
-    def actualizaFunciones(self):
+    # Usando los genes, crea las funciones del error, derivada de error y salida.
+    def generarFunciones(self):
         # Error
-        self.funcionError[0] = -self.controlBorroso[2]
-        self.funcionError[1] = -self.controlBorroso[1]
-        self.funcionError[2] = -self.controlBorroso[0]
-        self.funcionError[3] = 0  # Este valor siempre va a ser 0, es el eje de simetria de la funcion
-        self.funcionError[4] = self.controlBorroso[0]
-        self.funcionError[5] = self.controlBorroso[1]
-        self.funcionError[6] = self.controlBorroso[2]
+        self.funcionError[0] = -self.genes[2]
+        self.funcionError[1] = -self.genes[1]
+        self.funcionError[2] = -self.genes[0]
+        self.funcionError[3] = 0  # Este valor siempre es 0, ya que es el eje de simetria de la funcion
+        self.funcionError[4] = self.genes[0]
+        self.funcionError[5] = self.genes[1]
+        self.funcionError[6] = self.genes[2]
 
         # Derivada del error
-        self.funcionDError[0] = -self.controlBorroso[5]
-        self.funcionDError[1] = -self.controlBorroso[4]
-        self.funcionDError[2] = -self.controlBorroso[3]
-        self.funcionDError[3] = 0  # Este valor siempre va a ser 0, es el eje de simetria de la funcion
-        self.funcionDError[4] = self.controlBorroso[3]
-        self.funcionDError[5] = self.controlBorroso[4]
-        self.funcionDError[6] = self.controlBorroso[5]
+        self.funcionDError[0] = -self.genes[5]
+        self.funcionDError[1] = -self.genes[4]
+        self.funcionDError[2] = -self.genes[3]
+        self.funcionDError[3] = 0  # Este valor siempre es 0, ya que es el eje de simetria de la funcion
+        self.funcionDError[4] = self.genes[3]
+        self.funcionDError[5] = self.genes[4]
+        self.funcionDError[6] = self.genes[5]
 
         # Salida
-        self.funcionSalida[0] = -self.controlBorroso[11]
-        self.funcionSalida[1] = -self.controlBorroso[10]
-        self.funcionSalida[2] = -self.controlBorroso[9]
-        self.funcionSalida[3] = -self.controlBorroso[8]
-        self.funcionSalida[4] = -self.controlBorroso[7]
-        self.funcionSalida[5] = -self.controlBorroso[6]
-        self.funcionSalida[6] = self.controlBorroso[6]
-        self.funcionSalida[7] = self.controlBorroso[7]
-        self.funcionSalida[8] = self.controlBorroso[8]
-        self.funcionSalida[9] = self.controlBorroso[9]
-        self.funcionSalida[10] = self.controlBorroso[10]
-        self.funcionSalida[11] = self.controlBorroso[11]
+        self.funcionSalida[0] = -self.genes[11]
+        self.funcionSalida[1] = -self.genes[10]
+        self.funcionSalida[2] = -self.genes[9]
+        self.funcionSalida[3] = -self.genes[8]
+        self.funcionSalida[4] = -self.genes[7]
+        self.funcionSalida[5] = -self.genes[6]
+        self.funcionSalida[6] = self.genes[6]
+        self.funcionSalida[7] = self.genes[7]
+        self.funcionSalida[8] = self.genes[8]
+        self.funcionSalida[9] = self.genes[9]
+        self.funcionSalida[10] = self.genes[10]
+        self.funcionSalida[11] = self.genes[11]
 
     # muta aleatoriamente un numero aleatorio de genes
-    def muta(self):
-        numMutaciones = (int(random.random()*self.CONTROL_BORROSO_SIZE))%self.CONTROL_BORROSO_SIZE
-
-        for i in range(numMutaciones):
-            genMutado = (int(random.random()*self.CONTROL_BORROSO_SIZE))%self.CONTROL_BORROSO_SIZE
-            self.mutaGen(genMutado)
-        self.actualizaFunciones()
-
-    # muta un gen dado.
-    def mutaGen(self, pos):
-        newGen = self.controlBorroso[pos] + random.gauss(0, 1)  # Ahora el gen puede ser negativo, hay que tenerlo en cuenta, no nos interesa
+    def mutar(self):
+        for i in range(len(self.genes)):
+            newGen = self.genes[i] + random.gauss(0, 1)  # Ahora el gen puede ser negativo, hay que tenerlo en cuenta, no nos interesa
         genPost = 0
         genAnt = 0
-        if pos < self.CONTROL_BORROSO_SIZE - 1:
-            genPost = self.controlBorroso[pos +1]
-        if pos > 0:
-            genAnt = self.controlBorroso[pos-1]
+        if i < len(self.genes) - 1:
+            genPost = self.genes[i +1]
+        if i > 0:
+            genAnt = self.genes[i-1]
 
         # Verificamos que sigue siendo una funcion de pertenencia borrosa
-        if (pos == 0 or pos == 3 or pos == 6):  # Primeras posiciones de cada "bloque" (Error, Derivada, Salida)
+        if (i == 0 or i == 3 or i == 6):  # Primeras posiciones de cada "bloque" (Error, Derivada, Salida)
             if (newGen > genPost or newGen < 0):
                 newGen = genPost/2  # Asi nos aseguramos que siempre sera menor.
-        elif (pos == 2 or pos == 5 or pos == 11):  # Ultimas posiciones de cada "bloque"
+        elif (i == 2 or i == 5 or i == 11):  # Ultimas posiciones de cada "bloque"
             if (newGen < genAnt):
-                newGen = genAnt + (self.controlBorroso[pos] - genAnt)/2 # Nos aseguramos que sea mayor
+                newGen = genAnt + (self.genes[i] - genAnt)/2 # Nos aseguramos que sea mayor
         else:
             if (newGen > genPost or newGen < genAnt):  # Posiciones intermedias de cada "bloque"
                 newGen = genAnt + (genPost - genAnt)/2 # Aseguramos que el valor este entre medias.
 
-        self.controlBorroso[pos] = newGen
+        self.genes[i] = newGen
+        self.generarFunciones(self)
 
-
-# Error
-MD = 0 # Error negativo
+# Tipos de errores, de muy negativo a muy positivo
+MD = 0
 D = 1
 Z = 2
 I = 3
-MI = 4 # Error Positivo
+MI = 4
 
-# DError
+# Tipos de derivadas de errores, de muy negativa a muy positivas
 MP = 0  # DError Positiva
 P = 1
 Z = 2
 N = 3
 MN = 4  # DError Negativa
 
-# Salida
+# Tipos de salidas, de girar mucho a la derecha a girar mucho a la izquierda
 GMD = 0  # Girar mucho a la derecha
-GD = 1  # Girar derecha
-SR = 2  # Seguir rect
-GI = 3  # Girar izquierda
+GD = 1  # Girar a la derecha
+SR = 2  # Seguir recto
+GI = 3  # Girar a la izquierda
 GMI = 4  # Girar mucho a la izquierda
 
 class Control(Brain):
@@ -140,70 +131,54 @@ class Control(Brain):
         self.MAX_GEN = 100
         self.MAX_ITR = 200
         self.MAX_IND = 10
-
-        # Array de posiciones aleatorias
-        self.POSICIONES = [[12.75746, 4.69842, 190.0714], [5.18442, 9.84676, 274.06364], [3.30373, 0.303278, 167.53044], [1.75536, 5.111311, 305.59911]]
+        self.POSICIONES = [[12.75746, 4.69842, 190.0714], [5.18442, 9.84676, 274.06364], [3.30373, 0.303278, 167.53044], [1.75536, 5.111311, 305.59911]]  # Array de posiciones aleatorias
         self.POS_LUZ = [4.75, 4.75]
-
-        # Esto es recomendable hacerlo mejor, creo que no esta puesto bien
-        """
-        self.FAM = [[GMI, GMI, GD, GMD, GMD],
-                    [GI,  GI,  GD, GD,  GD ],
-                    [GI,  GI,  SR, GD,  GD ],
-                    [GMI, SR,  GI, GD,  GMD],
-                    [GI,  SR,  GI, SR,  GD ]]
-                    """
         self.FAM = [[SR, GD, GMI, GI,  GMI],
                     [GD,  GD,  GI,  SR,  GI ],
                     [GMD, GD,  SR,  GI,  GMI ],
                     [GD,  GD,  GD,  GI,  GI],
                     [GMD,  GMD, GMD, SR,  SR ]]
-        # Contiene el error y la derivada del erro borrosificadas
-        self.errorBorrosificado = range(0, 5)
-        self.derrorBorrosificado = range(0, 5)
+        self.errorBorrosificado = range(0, 5) # Error y derivada del error borrosificadas
+        self.derrorBorrosificado = range(0, 5) # Error y derivada del error desborrosificadas
 
         # Variables
-        self.itr = 0  # numero de iteraciones que ha relizado el robot hasta ahora
-        self.gen = 0  # generacion en la que estamos
-        self.ind = 0  # individuo en el que estamos
-        self.done = 0
-        self.poblacion = range(0, self.MAX_IND)
+        self.itr = 0  # Número de steps que lleva el robot
+        self.gen = 0  # Generación actual
+        self.ind = 0  # Individuo actual
+        self.done = False # Variable que indica cuando se ha terminado con el programa
+        self.poblacion = range(0, self.MAX_IND) # Array con los individuos de la población actual
         self.probTotal = 0
         self.error = 0
         self.errorAnt = 0
         self.derror = 0
-        self.elite = Individuo(-1)
-        self.fileResul = open("resul.txt" , "w")
+        self.mejorIndividuo = Individuo(-1)
+        self.ficheroSalida = open("Salida.txt" , "w")
         self.initPoblacion()
         self.posiciona()
 
-    # Inicializa la primera poblacion que se usara con individuos
+    # Inicializa la primera poblacion
     def initPoblacion(self):
         # Inicializamos la primera población
         for i in range(self.MAX_IND):
             self.poblacion[i] = Individuo(i)
-            self.poblacion[i].calidad = 1  # Para que no crashe por dividir entre 0 mas adelante
+            self.poblacion[i].calidad = 1
             self.probTotal = self.probTotal + self.poblacion[i].calidad
 
             # Elitismo
             if (i == 0):
-                self.elite = self.poblacion[i]
-            elif (self.elite.calidad < self.poblacion[i].calidad):
-                self.elite = self.poblacion[i]
+                self.mejorIndividuo = self.poblacion[i]
+            elif (self.mejorIndividuo.calidad < self.poblacion[i].calidad):
+                self.mejorIndividuo = self.poblacion[i]
 
         # Asignamos la probabilidad que tiene de ser elegido cuando se vaya a mutar.
         for i in range(self.MAX_IND):
             self.poblacion[i].probabilidad = float((self.poblacion[i].calidad) / float(self.probTotal))
 
-    # Asigna calidad a un individuo
-    def setCalidad(self):
-        return float(self.MAX_ITR / float(self.itr))
-
     # Crea una nueva poblacion de individuos mutandolos.
     def nuevaPoblacion(self):
         # El primer individuo el mejor de la generacion anterior
         nuevapoblacion = range(0, self.MAX_IND)
-        nuevapoblacion[0] = self.elite
+        nuevapoblacion[0] = self.mejorIndividuo
 
         # Creamos la "ruleta" de probabilidades
         tablaProb = range(0, self.MAX_IND)
@@ -226,27 +201,21 @@ class Control(Brain):
 
             newIndividuo = self.poblacion[pos]
             newIndividuo.id = tablaProb[pos][0]
-            newIndividuo.muta()
+            newIndividuo.mutar()
 
             nuevapoblacion[i] = newIndividuo
-        self.poblacion = nuevapoblacion  # Muy importante añadir esto -.-"
+        self.poblacion = nuevapoblacion
 
     # Posiciona al robot en una posicion aleatoria de entre 4 recolectadas.
     def posiciona(self):
-        r = (int(random.random()*4))%4
+        r = (int(random.uniform(0,3)))
         self.robot.simulation[0].setPose(0, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
 
-    # Devuelve 1 si el robot ha encontrado la luz, 0 en caso contrario
+    # Devuelve True si el robot ha encontrado la luz, False en caso contrario
     def luzEncontrada(self,ls, rs):
-        #pos = self.robot.simulation[0].getPose(0)
-        # d = sqrt((x-x0)^2 + (y-y0)^2)
-        #d = math.sqrt((pos[0] - self.POS_LUZ[0])**2 + (pos[1] - self.POS_LUZ[1])**2)
-
-        #if (d < self.MIN_DIST):
         if ls > 0.25 or rs > 0.25:
-            return 1
-
-        return 0
+            return True
+        return False
 
     # Asigna Probabilidad a los individuos
     def setProb(self):
@@ -262,8 +231,8 @@ class Control(Brain):
     # Asigna un elite en la poblacion
     def setElite(self):
         for i in range(0, self.MAX_IND):
-            if (self.poblacion[i].calidad > self.elite.calidad):
-                self.elite = self.poblacion[i]
+            if (self.poblacion[i].calidad > self.mejorIndividuo.calidad):
+                self.mejorIndividuo = self.poblacion[i]
 
     def getDErrorBorroso(self, error, parte):
         # Funcion de pertenencia de muy a la derecha
@@ -453,16 +422,16 @@ class Control(Brain):
         self.motors(leftSpeed, rightSpeed)
 
     def step(self):
-        if self.done == 1:
-            self.fileResul.flush()
-            self.fileResul.close()
+        if self.done:
+            self.ficheroSalida.flush()
+            self.ficheroSalida.close()
             self.stop()
             return;
         self.robot.light[0].units = "SCALED"
         ls = max([s.value for s in self.robot.light[0]["left"]])
         rs = max([s.value for s in self.robot.light[0]["right"]])
-        if self.itr == self.MAX_ITR or self.luzEncontrada(ls, rs) == 1:
-            self.poblacion[self.ind].calidad = self.setCalidad()
+        if self.itr == self.MAX_ITR or self.luzEncontrada(ls, rs):
+            self.poblacion[self.ind].calidad = float(self.MAX_ITR / float(self.itr))
             self.itr = 0
             self.ind = self.ind + 1
             self.posiciona()
@@ -472,13 +441,13 @@ class Control(Brain):
                 self.gen = self.gen + 1
                 self.setElite()
                 self.setProb()
-                self.fileResul.write("Generacion: " + str(self.gen) + " : \n" + "Calidad : " + str(self.elite.calidad) + "\n"
-                                        + "Individuo: \n" + str(self.elite.controlBorroso) + "\n")
-                self.fileResul.flush()
+                self.ficheroSalida.write("Generacion: " + str(self.gen) + " : \n" + "Calidad : " + str(self.mejorIndividuo.calidad) + "\n"
+                                        + "Individuo: \n" + str(self.mejorIndividuo.controlBorroso) + "\n")
+                self.ficheroSalida.flush()
                 print self.gen
                 if self.gen == self.MAX_GEN:
                     print "Finalizado"
-                    self.done = 1
+                    self.done = True
                 else:
                     self.nuevaPoblacion()
         else:            
