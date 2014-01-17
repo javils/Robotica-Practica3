@@ -6,7 +6,7 @@ import math
 class Individuo:
     def __init__(self, IndId):
         # Variables
-        self.id = IndId  # Identificador para diferenciar individuos
+        self.id = IndId
         self.calidad = 0  # Calidad del individuo
         self.genes = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # Array con la funcion de pertenencia. Los 3 primeros valores son el error,
         # los 3 siguientes la derivada del error y los 6 restantes la salida
@@ -78,7 +78,7 @@ class Individuo:
         self.funcionSalida[10] = self.genes[10]
         self.funcionSalida[11] = self.genes[11]
 
-    # funcion para mutar aleatoriamente un numero aleatorio de genes
+    # Funcion para mutar aleatoriamente los genes
     def mutar(self):
         for i in range(len(self.genes)):
             newGen = self.genes[i] + random.gauss(0, 1)  # Ahora el gen puede ser negativo, hay que tenerlo en cuenta, no nos interesa
@@ -131,14 +131,13 @@ class Control(Brain):
         self.MAX_GEN = 100
         self.MAX_ITR = 200
         self.MAX_IND = 10
-        self.POSICIONES = [[12.75746, 4.69842, 190.0714], [5.18442, 9.84676, 274.06364], [3.30373, 0.303278, 167.53044], [1.75536, 5.111311, 305.59911]]  # Array de posiciones aleatorias
         self.FAM = [[SR, GD, GMI, GI,  GMI],
                     [GD,  GD,  GI,  SR,  GI ],
                     [GMD, GD,  SR,  GI,  GMI ],
                     [GD,  GD,  GD,  GI,  GI],
                     [GMD,  GMD, GMD, SR,  SR ]]
         self.errorBorrosificado = range(0, 5) # Error borrosificado
-        self.dErrorBorrosificado = range(0, 5) # Derivada del error desborrosificadas
+        self.dErrorBorrosificado = range(0, 5) # Derivada del error borrosificada
         # Variables
         self.iteracion = 0  # Número de steps que lleva el robot
         self.generacion = 0  # Generación actual
@@ -151,26 +150,30 @@ class Control(Brain):
         self.derror = 0
         self.mejorIndividuo = Individuo(-1)
         self.ficheroSalida = open("Salida.txt" , "w")
-        self.initPoblacion()
-        self.posiciona()
+        self.generarPrimeraPoblacion()
+        self.colocarRobot()
 
     # Inicializa la primera poblacion
-    def initPoblacion(self):
-        # Inicializamos la primera población
+    def generarPrimeraPoblacion(self):
         for i in range(self.MAX_IND):
             self.poblacion[i] = Individuo(i)
             self.poblacion[i].calidad = 1
             self.probTotal = self.probTotal + self.poblacion[i].calidad
-
             # Elitismo
             if (i == 0):
                 self.mejorIndividuo = self.poblacion[i]
             elif (self.mejorIndividuo.calidad < self.poblacion[i].calidad):
                 self.mejorIndividuo = self.poblacion[i]
-
-        # Asignamos la probabilidad que tiene de ser elegido cuando se vaya a mutar.
+        # Asignamos la probabilidad que tiene de ser elegido cuando se vaya a mutar
         for i in range(self.MAX_IND):
             self.poblacion[i].probabilidad = float((self.poblacion[i].calidad) / float(self.probTotal))
+
+    # Coloca al robot en una posicion aleatoria
+    def colocarRobot(self):
+        #TODO: Generar las posiciones del robot aleatoriamente
+        POSICIONES = [[12.75746, 4.69842, 190.0714], [5.18442, 9.84676, 274.06364], [3.30373, 0.303278, 167.53044], [1.75536, 5.111311, 305.59911]]
+        r = (int(random.uniform(0,3)))
+        self.robot.simulation[0].setPose(0, POSICIONES[r][0], POSICIONES[r][1], POSICIONES[r][2])
 
     # Crea una nueva poblacion de individuos mutandolos.
     def nuevaPoblacion(self):
@@ -203,11 +206,6 @@ class Control(Brain):
 
             nuevapoblacion[i] = newIndividuo
         self.poblacion = nuevapoblacion
-
-    # Posiciona al robot en una posicion aleatoria de entre 4 recolectadas.
-    def posiciona(self):
-        r = (int(random.uniform(0,3)))
-        self.robot.simulation[0].setPose(0, self.POSICIONES[r][0],self.POSICIONES[r][1],self.POSICIONES[r][2])
 
     # Devuelve True si el robot ha encontrado la luz, False en caso contrario
     def luzEncontrada(self,ls, rs):
@@ -432,7 +430,7 @@ class Control(Brain):
             self.poblacion[self.individuo].calidad = float(self.MAX_ITR / float(self.iteracion))
             self.iteracion = 0
             self.individuo = self.individuo + 1
-            self.posiciona()
+            self.colocarRobot()
             print self.individuo
             if self.individuo == self.MAX_IND:
                 self.individuo = 0
