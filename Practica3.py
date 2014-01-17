@@ -180,10 +180,9 @@ class Control(Brain):
         # El primer individuo el mejor de la generacion anterior
         nuevapoblacion = range(0, self.MAX_IND)
         nuevapoblacion[0] = self.mejorIndividuo
-
         # Creamos la "ruleta" de probabilidades
         tablaProb = range(0, self.MAX_IND)
-        probAcum = 0  # Probabilidad acumulada hasta el momento.
+        probAcum = 0  # Probabilidad acumulada hasta el momento. Se usará para elegir a los infividuos para la próxima generación.
         for i in range(0, self.MAX_IND):
             probAcum = probAcum + self.poblacion[i].probabilidad
             tablaProb[i] = [self.poblacion[i].id, probAcum]
@@ -191,7 +190,6 @@ class Control(Brain):
         # Mutamos los individuos y los añadimos a la nueva poblacion
         for i in range(1, self.MAX_IND):
             prob = random.random()
-
             pos = 0  # elemento de la tabla que ha "tocado"
             # Buscamos el individuo en la tabla
             for j in range (0, self.MAX_IND):
