@@ -6,7 +6,7 @@ import math
 class Individuo:
     def __init__(self, IndId):
         # Variables
-        self.id = IndId
+        self.id = IndId  # Identificador para diferenciar individuos
         self.calidad = 0  # Calidad del individuo
         self.genes = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # Array con la funcion de pertenencia. Los 3 primeros valores son el error,
         # los 3 siguientes la derivada del error y los 6 restantes la salida
@@ -18,9 +18,12 @@ class Individuo:
         self.funcionSalida = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.generarFunciones()
 
+
     # Devuelve los genes del individuo, generados aleatoriamente.
     def generarGenes(self):
+
         # Error
+
         aux = [random.random() for col in range(3)]
         aux.sort()  # a < b < c
         self.genes[0] = aux[0]
@@ -28,6 +31,7 @@ class Individuo:
         self.genes[2] = aux[2]
 
         # Derivada del error
+
         aux = [random.random() for col in range(3)]
         aux.sort()  # d < e < f
         self.genes[3] = aux[0]
@@ -35,6 +39,7 @@ class Individuo:
         self.genes[5] = aux[2]
 
         # Salida
+
         aux = [random.random() for col in range(6)]
         aux.sort()  # g < h < i < j < k < l
         self.genes[6] = aux[0]
@@ -44,9 +49,13 @@ class Individuo:
         self.genes[10] = aux[4]
         self.genes[11] = aux[5]
 
+
+
     # Usando los genes, crea las funciones del error, derivada de error y salida.
     def generarFunciones(self):
-        # Error
+
+        # Funcion Error
+
         self.funcionError[0] = -self.genes[2]
         self.funcionError[1] = -self.genes[1]
         self.funcionError[2] = -self.genes[0]
@@ -55,7 +64,8 @@ class Individuo:
         self.funcionError[5] = self.genes[1]
         self.funcionError[6] = self.genes[2]
 
-        # Derivada del error
+        # Funcion Derivada del error
+
         self.funcionDError[0] = -self.genes[5]
         self.funcionDError[1] = -self.genes[4]
         self.funcionDError[2] = -self.genes[3]
@@ -64,7 +74,8 @@ class Individuo:
         self.funcionDError[5] = self.genes[4]
         self.funcionDError[6] = self.genes[5]
 
-        # Salida
+        # Funcion Salida
+
         self.funcionSalida[0] = -self.genes[11]
         self.funcionSalida[1] = -self.genes[10]
         self.funcionSalida[2] = -self.genes[9]
@@ -78,30 +89,36 @@ class Individuo:
         self.funcionSalida[10] = self.genes[10]
         self.funcionSalida[11] = self.genes[11]
 
-    # Funcion para mutar aleatoriamente los genes
+    
     def mutar(self):
+
         for i in range(len(self.genes)):
-            newGen = self.genes[i] + random.gauss(0, 1)  # Ahora el gen puede ser negativo, hay que tenerlo en cuenta, no nos interesa
-        genPost = 0
-        genAnt = 0
+            generacionNueva = self.genes[i] + random.gauss(0, 1)  
+
+        generacionSiguiente = 0
+        generacionAnterior = 0
+
         if i < len(self.genes) - 1:
-            genPost = self.genes[i +1]
+            generacionSiguiente = self.genes[i+1]
         if i > 0:
-            genAnt = self.genes[i-1]
+            generacionAnterior = self.genes[i-1]
 
-        # Verificamos que sigue siendo una funcion de pertenencia borrosa
-        if (i == 0 or i == 3 or i == 6):  # Primeras posiciones de cada "bloque" (Error, Derivada, Salida)
-            if (newGen > genPost or newGen < 0):
-                newGen = genPost/2  # Asi nos aseguramos que siempre sera menor.
-        elif (i == 2 or i == 5 or i == 11):  # Ultimas posiciones de cada "bloque"
-            if (newGen < genAnt):
-                newGen = genAnt + (self.genes[i] - genAnt)/2 # Nos aseguramos que sea mayor
+        # Comprobamos si sigue siendo una funcion de pertenencia borrosa que cumple las condiciones
+
+        if (i == 0 or i == 3 or i == 6):  
+            if (generacionNueva > generacionSiguiente or generacionNueva < 0):
+                generacionNueva = generacionSiguiente/2  
+        elif (i == 2 or i == 5 or i == 11):  
+            if (generacionNueva < generacionNueva):
+                generacionNueva = generacionNueva + (self.genes[i] - generacionNueva)/2 
         else:
-            if (newGen > genPost or newGen < genAnt):  # Posiciones intermedias de cada "bloque"
-                newGen = genAnt + (genPost - genAnt)/2 # Aseguramos que el valor este entre medias.
+            if (generacionNueva > generacionSiguiente or generacionNueva < generacionAnterior):  
+                generacionNueva = generacionAnterior + (generacionSiguiente - generacionAnterior)/2
 
-        self.genes[i] = newGen
+        self.genes[i] = generacionNueva
         self.generarFunciones(self)
+
+
 
 # Tipos de errores, de muy negativo a muy positivo
 MD = 0	# Muy Derecha
